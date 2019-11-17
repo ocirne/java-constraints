@@ -5,9 +5,7 @@ import de.enricopilz.constraints.problem.Variables;
 import de.enricopilz.constraints.problem.constraints.BiConstraint;
 import de.enricopilz.constraints.problem.constraints.SimConstraint;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -39,18 +37,18 @@ public class Problem<S> {
 
     public static class Builder<S> {
 
-        private Variables<S> variables = new Variables<>();
+        private Map<S, Variable<S>> variables = new HashMap<>();
 
         private Set<SimConstraint<S>> simConstraints = new HashSet<>();
 
         private Set<BiConstraint<S>> biConstraints = new HashSet<>();
 
         public Problem<S> build() {
-            return new Problem<>(variables, simConstraints, biConstraints);
+            return new Problem<>(new Variables<>(variables), simConstraints, biConstraints);
         }
 
         public void addVariable(final S symbol, final List<Integer> possibilities) {
-            variables.getMap().put(symbol, new Variable<>(symbol, possibilities));
+            variables.put(symbol, new Variable<>(symbol, possibilities));
         }
 
         public void addVariables(final List<S> symbols, final List<Integer> possibilities) {
