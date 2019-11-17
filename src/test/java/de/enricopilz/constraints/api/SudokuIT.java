@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static de.enricopilz.constraints.api.SolverFactory.SolverEnum.DFS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SudokuIT {
@@ -171,7 +172,7 @@ public class SudokuIT {
             }
         }
 
-        Solver<Integer> solver = SolverFactory.constructDeepFirstSearchSolver(sudokuProblem.build());
+        Solver<Integer> solver = SolverFactory.constructSolver(DFS, sudokuProblem.build());
         List<Solution<Integer>> sudokuSolutions = solver.solve();
         assertThat(sudokuSolutions).hasSize(1);
         Solution<Integer> sudokuSolution = sudokuSolutions.get(0);

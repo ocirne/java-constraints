@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static de.enricopilz.constraints.api.SolverFactory.SolverEnum.DFS;
 import static de.enricopilz.constraints.api.ZebraIT.Nation.*;
 import static de.enricopilz.constraints.api.ZebraIT.Color.*;
 import static de.enricopilz.constraints.api.ZebraIT.Smoke.*;
@@ -74,7 +75,7 @@ public class ZebraIT {
         // 15. The Norwegian lives next to the blue house.
         zebraPuzzle.addConstraint(NORWEGIAN, BLUE, (a, b) -> a.equals(b - 1) || a.equals(b + 1));
 
-        Solver<Enum<?>> solver = SolverFactory.constructDeepFirstSearchSolver(zebraPuzzle.build());
+        Solver<Enum<?>> solver = SolverFactory.constructSolver(DFS, zebraPuzzle.build());
         List<Solution<Enum<?>>> zebraSolutions = solver.solve();
         assertThat(zebraSolutions).hasSize(1);
         Solution<Enum<?>> zebraSolution = zebraSolutions.get(0);
