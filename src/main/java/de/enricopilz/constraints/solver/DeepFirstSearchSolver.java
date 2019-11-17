@@ -7,7 +7,7 @@ import de.enricopilz.constraints.problem.constraints.BiConstraint;
 import de.enricopilz.constraints.problem.constraints.SimConstraint;
 
 import java.util.*;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * S : Type of symbols
@@ -70,16 +70,27 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
         }
     }
 
-    private boolean useSimConstraint(Variables<S> variables, SimConstraint<S> constraint) {
+    private boolean useSimConstraint(final Variables<S> variables, final SimConstraint<S> constraint) {
         Variable<S> variable = variables.get(constraint.getSymbol());
+        return removeNonMatching(variable, constraint::match);
+    }
+
+    private boolean useBiConstraint(final Variables<S> variables, final BiConstraint<S> constraint) {
+        final Variable<S> a = variables.get(constraint.getA());
+        final Variable<S> b = variables.get(constraint.getB());
+        return (a.value().isEmpty() || removeNonMatching(b, x -> constraint.match(a.value().get(), x))) &&
+               (b.value().isEmpty() || removeNonMatching(a, x -> constraint.match(x, b.value().get())));
+    }
+
+    private boolean removeNonMatching(final Variable<S> variable, final Function<Integer, Boolean> fun) {
         // If already solved, then only check (faster detection of wrong guesses)
         if (variable.value().isPresent()) {
-            return constraint.match(variable.value().get());
+            return fun.apply(variable.value().get());
         }
         // remove everything which doesn't match
         List<Integer> removals = new LinkedList<>();
         for (Integer value : variable.getPossibilities()) {
-            if (!constraint.match(value)) {
+            if (!fun.apply(value)) {
                 removals.add(value);
             }
         }
@@ -88,34 +99,6 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
             return false;
         }
         variable.removePossibilities(removals);
-        return true;
-    }
-
-    private boolean useBiConstraint(final Variables<S> variables, final BiConstraint<S> constraint) {
-        final Variable<S> a = variables.get(constraint.getA());
-        final Variable<S> b = variables.get(constraint.getB());
-        return removeNonMatching(a, b, constraint::match) &&
-                removeNonMatching(b, a, (x, y) -> constraint.match(y, x));
-    }
-
-    private boolean removeNonMatching(final Variable<S> aVar, final Variable<S> bVar, final BiFunction<Integer, Integer, Boolean> f) {
-        // if the symbol isn't solved we don't remove anything from the other symbol
-        if (aVar.value().isEmpty()) {
-            return true;
-        }
-        final Integer aVal = aVar.value().get();
-        // remove everything which doesn't match
-        List<Integer> removals = new LinkedList<>();
-        for (Integer bVal : bVar.getPossibilities()) {
-            if (!f.apply(aVal, bVal)) {
-                removals.add(bVal);
-            }
-        }
-        // No more possibilities? Then a guess was wrong.
-        if (bVar.getPossibilities().size() == removals.size()) {
-            return false;
-        }
-        bVar.removePossibilities(removals);
         return true;
     }
 }
