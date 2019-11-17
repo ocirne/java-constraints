@@ -1,6 +1,5 @@
 package de.enricopilz.constraints.api;
 
-import de.enricopilz.constraints.solver.DeepFirstSearchSolver;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -75,7 +74,7 @@ public class ZebraIT {
         // 15. The Norwegian lives next to the blue house.
         zebraPuzzle.addConstraint(NORWEGIAN, BLUE, (a, b) -> a.equals(b - 1) || a.equals(b + 1));
 
-        Solver<Enum<?>> solver = new DeepFirstSearchSolver<>(zebraPuzzle.build());
+        Solver<Enum<?>> solver = SolverFactory.constructDeepFirstSearchSolver(zebraPuzzle.build());
         List<Solution<Enum<?>>> zebraSolutions = solver.solve();
         assertThat(zebraSolutions).hasSize(1);
         Solution<Enum<?>> zebraSolution = zebraSolutions.get(0);

@@ -1,6 +1,5 @@
 package de.enricopilz.constraints.api;
 
-import de.enricopilz.constraints.solver.DeepFirstSearchSolver;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -172,7 +171,7 @@ public class SudokuIT {
             }
         }
 
-        Solver<Integer> solver = new DeepFirstSearchSolver<>(sudokuProblem.build());
+        Solver<Integer> solver = SolverFactory.constructDeepFirstSearchSolver(sudokuProblem.build());
         List<Solution<Integer>> sudokuSolutions = solver.solve();
         assertThat(sudokuSolutions).hasSize(1);
         Solution<Integer> sudokuSolution = sudokuSolutions.get(0);
