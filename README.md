@@ -11,4 +11,4 @@ Playground for constraints solvers in Java.
 
 ### Zebra Puzzle
 
-* [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle)
+* [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) (Original)
