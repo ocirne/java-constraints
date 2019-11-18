@@ -43,20 +43,20 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
 
     private void reasoningPart(final Problem<S> problem, Variables<S> variables) {
         while (true) {
-            long before = variables.countSolvedVariables();
+            final long before = variables.countSolvedVariables();
             for (BiConstraint<S> constraint : problem.getBiConstraints()) {
                 if (!useBiConstraint(variables, constraint)) {
                     return;
                 }
             }
-            long after = variables.countSolvedVariables();
-            if (variables.isSolved(after)) {
-                this.solutions.add(variables.extractSolution());
-                return;
-            }
+            final long after = variables.countSolvedVariables();
+            // no changes from constraints: solved, or need to guess
             if (before == after) {
-                // assumption, that first guess must bring a solution
-                guessPart(problem, variables.deepClone());
+                if (variables.isSolved(after)) {
+                    this.solutions.add(variables.extractSolution());
+                } else {
+                    guessPart(problem, variables.deepClone());
+                }
                 return;
             }
         }
