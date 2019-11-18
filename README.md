@@ -2,7 +2,7 @@
 
 Playground for constraints solvers in Java.
 
-## Tests
+## Reference Problems
 
 ### Sudoku
 
