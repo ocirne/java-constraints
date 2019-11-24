@@ -9,6 +9,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.setAllowComparingPrivateFields;
 
 @RunWith(Parameterized.class)
 public class NonogramSolverTest {
@@ -18,16 +19,16 @@ public class NonogramSolverTest {
     @Parameters
     public static Iterable<Object[]> data() {
           return Arrays.asList(new Object[][] {
-                  { ".", a(), " " },
-                  { ".", a(1), "#" },
-                  { ".....", a(2), "....." },
-                  { ".....", a(3), "..#.." },
-                  { ".....", a(4), ".###." },
-                  { ".....", a(2, 2), "## ##" },
-                  { ".....", a(1, 1, 1), "# # #" },
-                  { " . ...", a(3), "   ###" },
+//                  { ".", a(), " " },
+//                  { ".", a(1), "#" },
+//                  { ".....", a(2), "....." },
+//                  { ".....", a(3), "..#.." },
+//                  { ".....", a(4), ".###." },
+//                  { ".....", a(2, 2), "## ##" },
+//                  { ".....", a(1, 1, 1), "# # #" },
+//                  { " . ...", a(3), "   ###" },
                   { "... ...", a(3), "... ..." },
-                  { ". . . .", a(1, 1), ". . . ." },
+//                  { ". . . .", a(1, 1), ". . . ." },
                   { ". . . .", a(1, 1, 1), ".#.#.#." },
                   { " . .. . ", a(2, 1), "   ## # " },
           });
@@ -44,6 +45,7 @@ public class NonogramSolverTest {
 
     @Test
     public void testSolveLine() {
+        System.err.println("'" + input + "' + " + Arrays.toString(numbers) + " -> '" + expectedOutput + "'");
         String actualOutput = nonogramSolver.solveLine(input, numbers);
         assertThat(actualOutput).isEqualTo(expectedOutput);
     }
