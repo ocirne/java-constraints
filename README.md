@@ -2,6 +2,11 @@
 
 Playground for constraints solvers in Java.
 
+## Usage
+
+There are better constraint solvers like [Prolog](https://en.wikipedia.org/wiki/Prolog) and even constraint solvers in Java ([Choco Solver](http://www.choco-solver.org/)) available.
+Use them.
+
 ## Reference Problems
 
 ### Sudoku
@@ -12,3 +17,7 @@ Playground for constraints solvers in Java.
 ### Zebra Puzzle
 
 * [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) (Original)
+
+### Nonogram
+
+* [Nonogram](https://en.wikipedia.org/wiki/Nonogram)
