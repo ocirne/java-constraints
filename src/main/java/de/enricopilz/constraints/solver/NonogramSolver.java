@@ -15,7 +15,7 @@ public class NonogramSolver {
      * ..###
      * ->
      * ..#..
-     *
+     * <p>
      * 3 in einer 5 Linie bedeutet:
      * - Anfang ist mindestens bei 0 (outerLeft), höchstens bei 2 (innerLeft)
      * - Ende ist mindestens vor 3 (innerRight), höchstens vor 5 (outerRight)
@@ -38,21 +38,32 @@ public class NonogramSolver {
     }
 
     public char[] solveLine() {
+        char[] tmp;
+        printState();
         useTechniqueSimpleBoxes();
-        useTechniqueForcing();
-        useTechniqueGlueing();
-        useTechniqueMercury();
+        printState();
+        do {
+            tmp = output.clone();
+            useTechniqueForcing();
+            useTechniqueGlueing();
+            useTechniqueMercury();
 
-        setDefiniteBlack();
-        setDefiniteWhite();
+            setDefiniteBlack();
+            setDefiniteWhite();
+            printState();
+        } while (!Arrays.equals(tmp, output));
 
+        return output;
+    }
+
+    private void printState() {
+        System.out.println("'" + String.valueOf(output) + "'");
         for (int n = 0; n < nu.length; n++) {
             System.out.println("index: " + n + ", zahl: " + nu[n] + "," +
                     " von " + outerLeft[n] + "/" + innerLeft[n] +
                     " bis " + innerRight[n] + "/" + outerRight[n]);
         }
-
-        return output;
+        System.out.println();
     }
 
     public void useTechniqueSimpleBoxes() {
@@ -76,9 +87,48 @@ public class NonogramSolver {
     }
 
     public void useTechniqueForcing() {
-        for (int i = 0; i < output.length; i++) {
-
+        for (int n = 0; n < nu.length; n++) {
+            increaseFirstPossibleStart(n);
+            decreaseLastPossibleEnding(n);
         }
+    }
+
+    private void increaseFirstPossibleStart(int n) {
+        for (int start = outerLeft[n]; start <= innerLeft[n]; start++) {
+            if (isPossibleStart(n, start)) {
+                outerLeft[n] = start;
+                innerRight[n] = outerLeft[n] + nu[n];
+                return;
+            }
+        }
+    }
+
+    private void decreaseLastPossibleEnding(int n) {
+        for (int end = outerRight[n]; end >= innerRight[n]; end--) {
+            if (isPossibleEnd(n, end)) {
+                outerRight[n] = end;
+                innerLeft[n] = outerRight[n] - nu[n];
+                return;
+            }
+        }
+    }
+
+    private boolean isPossibleStart(int n, int start) {
+        for (int i = start; i < start + nu[n]; i++) {
+            if (output[i] == WHITE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPossibleEnd(int n, int end) {
+        for (int i = end; i > end - nu[n]; i--) {
+            if (output[i-1] == WHITE) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void useTechniqueGlueing() {
