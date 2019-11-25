@@ -20,12 +20,12 @@ public class NonogramSolver {
      * - Anfang ist mindestens bei 0 (outerLeft), höchstens bei 2 (innerLeft)
      * - Ende ist mindestens vor 3 (innerRight), höchstens vor 5 (outerRight)
      */
-    int[] nu;
-    int[] outerLeft;
-    int[] innerLeft;
-    int[] innerRight;
-    int[] outerRight;
-    char[] output;
+    private int[] nu;
+    private int[] outerLeft;
+    private int[] innerLeft;
+    private int[] innerRight;
+    private int[] outerRight;
+    private char[] output;
 
     public String solveLine(String input, int[] numbers) {
         this.nu = numbers;
@@ -39,10 +39,18 @@ public class NonogramSolver {
 
     public char[] solveLine() {
         useTechniqueSimpleBoxes();
-        useTechniqueSimpleSpaces();
         useTechniqueForcing();
         useTechniqueGlueing();
         useTechniqueMercury();
+
+        setDefiniteBlack();
+        setDefiniteWhite();
+
+        for (int n = 0; n < nu.length; n++) {
+            System.out.println("index: " + n + ", zahl: " + nu[n] + "," +
+                    " von " + outerLeft[n] + "/" + innerLeft[n] +
+                    " bis " + innerRight[n] + "/" + outerRight[n]);
+        }
 
         return output;
     }
@@ -54,43 +62,55 @@ public class NonogramSolver {
         // untergrenzen
         outerLeft[0] = 0;
         innerRight[0] = outerLeft[0] + nu[0];
-        for (int i = 1; i < nu.length; i++) {
-            outerLeft[i] = outerLeft[i - 1] + nu[i - 1] + 1;
-            innerRight[i] = outerLeft[i] + nu[i];
+        for (int n = 1; n < nu.length; n++) {
+            outerLeft[n] = outerLeft[n - 1] + nu[n - 1] + 1;
+            innerRight[n] = outerLeft[n] + nu[n];
         }
         // obergrenzen
         outerRight[nu.length - 1] = output.length;
         innerLeft[nu.length - 1] = outerRight[nu.length-1] - nu[0];
-        for (int i = nu.length - 2; i >= 0; i--) {
-            outerRight[i] = outerRight[i + 1] - nu[i + 1] - 1;
-            innerLeft[i] = outerRight[i] - nu[i];
-        }
-        for (int i = 0; i < nu.length; i++) {
-            System.out.println("index: " + i + ", zahl: " + nu[i] + "," +
-                    " von " + outerLeft[i] + "/" + innerLeft[i] +
-                    " bis " + innerRight[i] + "/" + outerRight[i]);
-            if (innerRight[i] - innerLeft[i] > nu[i]) {
-                throw new IllegalArgumentException("nicht möglich");
-            }
-            for (int j = innerLeft[i]; j < innerRight[i]; j++) {
-                output[j] = BLACK;
-            }
+        for (int n = nu.length - 2; n >= 0; n--) {
+            outerRight[n] = outerRight[n + 1] - nu[n + 1] - 1;
+            innerLeft[n] = outerRight[n] - nu[n];
         }
     }
 
     public void useTechniqueForcing() {
+        for (int i = 0; i < output.length; i++) {
 
+        }
     }
 
     private void useTechniqueGlueing() {
-
+        // von unten - TODO noch nicht präzise definiert
+        for (int n = 0; n < nu.length; n++) {
+            for (int i = outerLeft[n]; i < innerLeft[n]; i++) {
+                if (output[i] == BLACK) {
+                    innerLeft[n] = i;
+                    outerRight[n] = i + nu[n];
+                }
+            }
+        }
+        // von oben - TODO noch nicht präzise definiert
+        for (int n = nu.length - 1; n >= 0; n--) {
+            for (int i = outerRight[n]; i > innerRight[n]; i--) {
+                if (output[i - 1] == BLACK) {
+                    innerRight[n] = i;
+                    outerLeft[n] = i - nu[n];
+                }
+            }
+        }
     }
 
     private void useTechniqueMercury() {
+        for (int i = 0; i < output.length; i++) {
+            if (output[i] == BLACK) {
 
+            }
+        }
     }
 
-    private void useTechniqueSimpleSpaces() {
+    private void setDefiniteWhite() {
         // shortcut for convenience
         if (nu.length == 0) {
             Arrays.fill(output, WHITE);
@@ -99,8 +119,8 @@ public class NonogramSolver {
         // Ermittle alles, was nicht durch Schwarz erreicht werden kann
         char[] tmp = new char[output.length];
         Arrays.fill(tmp, UNKNOWN);
-        for (int i = 0; i < nu.length; i++) {
-            for (int j = outerLeft[i]; j < outerRight[i]; j++) {
+        for (int n = 0; n < nu.length; n++) {
+            for (int j = outerLeft[n]; j < outerRight[n]; j++) {
                 tmp[j] = BLACK;
             }
         }
@@ -108,6 +128,18 @@ public class NonogramSolver {
         for (int j = 0; j < output.length; j++) {
             if (tmp[j] == UNKNOWN) {
                 output[j] = WHITE;
+            }
+        }
+    }
+
+    private void setDefiniteBlack() {
+        // Sicher schwarze setzen
+        for (int i = 0; i < nu.length; i++) {
+            if (innerRight[i] - innerLeft[i] > nu[i]) {
+                throw new IllegalArgumentException("nicht möglich");
+            }
+            for (int j = innerLeft[i]; j < innerRight[i]; j++) {
+                output[j] = BLACK;
             }
         }
     }
