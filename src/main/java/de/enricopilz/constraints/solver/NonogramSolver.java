@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class NonogramSolver {
 
-    private static final char UNKNOWN = '.';
+    private static final char UNKNOWN = 'x';
     private static final char BLACK = '#';
-    private static final char WHITE = ' ';
+    private static final char WHITE = '.';
 
     /**
      * 01234
@@ -93,67 +93,46 @@ public class NonogramSolver {
         }
     }
 
-    // Zahlen sind in einer doppelt verketteten Liste hinterlegt (pro Linie), Alternative: LinkedList
-    private BlackArea[] bas;
+    abstract class Line {
+        // Zahlen sind in einer doppelt verketteten Liste hinterlegt (pro Linie), Alternative: LinkedList
+        private BlackArea[] bas;
 
-    private char[] output;
+        private final int size;
 
-    public String solveLine(String input, int[] numbers) {
-        this.bas = new BlackArea[numbers.length];
-        this.output = input.toCharArray();
-        for (int n = 0; n < numbers.length; n++) {
-            bas[n] = new BlackArea(numbers[n]);
-        }
-        for (int n = 0; n < numbers.length; n++) {
-            if (n > 0) {
-                bas[n].setLeft(bas[n - 1]);
+        public Line(int[] numbers, int size) {
+            this.size = size;
+            bas = new BlackArea[numbers.length];
+            for (int n = 0; n < numbers.length; n++) {
+                bas[n] = new BlackArea(numbers[n]);
             }
-            if (n < numbers.length - 1) {
-                bas[n].setRight(bas[n + 1]);
+            for (int n = 0; n < numbers.length; n++) {
+                if (n > 0) {
+                    bas[n].setLeft(bas[n - 1]);
+                }
+                if (n < numbers.length - 1) {
+                    bas[n].setRight(bas[n + 1]);
+                }
             }
+            useTechniqueSimpleBoxes();
         }
-        return String.valueOf(solveLine());
-    }
 
-    public char[] solveLine() {
-        char[] tmp;
-        System.out.println("Urzustand:");
-        printState();
-        System.out.println("Initialization:");
-        useTechniqueSimpleBoxes();
-        printState();
-        do {
-            tmp = output.clone();
-            useTechniqueForcing();
-            useTechniqueGlueing();
+        // initialization
+        public void useTechniqueSimpleBoxes() {
+            if (bas.length == 0) {
+                return;
+            }
+            bas[0].setMinimalOuterLeft(0);
+            bas[bas.length-1].setMaximalOuterRight(size);
+        }
+
+        public void solveLine() {
+              useTechniqueForcing();
+              useTechniqueGlueing();
 
             setDefiniteBlack();
             setDefiniteWhite();
-            System.out.println("Loop:");
-            printState();
-        } while (!Arrays.equals(tmp, output));
-
-        return output;
-    }
-
-    private void printState() {
-        System.out.println("'" + String.valueOf(output) + "'");
-        for (BlackArea ba : bas) {
-            System.out.println("zahl: " + ba.length + "," +
-                    " von " + ba.getOuterLeft() + "/" + ba.getInnerLeft() +
-                    " bis " + ba.getInnerRight() + "/" + ba.getOuterRight());
         }
-        System.out.println();
-    }
 
-    // initialization
-    public void useTechniqueSimpleBoxes() {
-        if (bas.length == 0) {
-            return;
-        }
-        bas[0].setMinimalOuterLeft(0);
-        bas[bas.length-1].setMaximalOuterRight(output.length);
-    }
 
     public void useTechniqueForcing() {
         for (BlackArea ba : bas) {
@@ -183,7 +162,7 @@ public class NonogramSolver {
 
     private boolean isPossibleStart(BlackArea ba, int start) {
         for (int i = start; i < start + ba.getLength(); i++) {
-            if (output[i] == WHITE) {
+            if (getResult(i) == WHITE) {
                 return false;
             }
         }
@@ -192,7 +171,7 @@ public class NonogramSolver {
 
     private boolean isPossibleEnd(BlackArea ba, int end) {
         for (int i = end; i > end - ba.getLength(); i--) {
-            if (output[i - 1] == WHITE) {
+            if (getResult(i - 1) == WHITE) {
                 return false;
             }
         }
@@ -211,7 +190,7 @@ public class NonogramSolver {
     private void glueingFromLeft(BlackArea ba) {
         // von unten - TODO ist vermutlich noch fehlerhaft
         for (int i = ba.getOuterLeft(); i < ba.getInnerLeft(); i++) {
-            if (output[i] == BLACK) {
+            if (getResult(i) == BLACK) {
                 ba.setInnerLeft(i);
                 return;
             }
@@ -221,34 +200,132 @@ public class NonogramSolver {
     private void glueingFromRight(BlackArea ba) {
         // von oben - TODO ist vermutlich noch fehlerhaft
         for (int i = ba.getOuterRight(); i > ba.getInnerRight(); i--) {
-            if (output[i - 1] == BLACK) {
+            if (getResult(i - 1) == BLACK) {
                 ba.setInnerRight(i);
                 return;
             }
         }
     }
 
-    private void setDefiniteWhite() {
-        // Ermittle in tmp alles, was nicht durch Schwarz erreicht werden kann
-        char[] tmp = new char[output.length];
-        Arrays.fill(tmp, UNKNOWN);
-        for (BlackArea ba : bas) {
-            for (int i = ba.outerLeft; i < ba.getOuterRight(); i++) {
-                tmp[i] = BLACK;
+
+        private void setDefiniteWhite() {
+            // Ermittle in tmp alles, was nicht durch Schwarz erreicht werden kann
+            char[] tmp = new char[size];
+            Arrays.fill(tmp, UNKNOWN);
+            for (BlackArea ba : bas) {
+//                System.err.println(ba.getOuterLeft() + "-" + ba.getOuterRight());
+                for (int i = ba.getOuterLeft(); i < ba.getOuterRight(); i++) {
+                    tmp[i] = BLACK;
+                }
+            }
+//            System.err.println(Arrays.toString(tmp));
+            // Alles, was nicht erreicht wird, muss weiß sein
+            for (int i = 0; i < size; i++) {
+                if (tmp[i] == UNKNOWN) {
+                    setResult(i, WHITE);
+                }
             }
         }
-        // Alles, was nicht erreicht wird, muss weiß sein
-        for (int i = 0; i < output.length; i++) {
-            if (tmp[i] == UNKNOWN) {
-                output[i] = WHITE;
+
+        private void setDefiniteBlack() {
+            for (BlackArea ba : bas) {
+                for (int i = ba.getInnerLeft(); i < ba.getInnerRight(); i++) {
+                    setResult(i, BLACK);
+                }
+            }
+        }
+
+        public abstract char getResult(int i);
+
+        public abstract void setResult(int i, char value);
+    }
+
+    class Row extends Line {
+        private final int y;
+
+        public Row(int[] numbers, int size, int y) {
+            super(numbers, size);
+            this.y = y;
+        }
+
+        @Override
+        public char getResult(int x) {
+            return result[x][y];
+        }
+
+        @Override
+        public void setResult(int x, char value) {
+            result[x][y] = value;
+        }
+    }
+
+    class Col extends Line {
+        private final int x;
+
+        public Col(int[] numbers, int size, int x) {
+            super(numbers, size);
+            this.x = x;
+        }
+
+        @Override
+        public char getResult(int y) {
+            return result[x][y];
+        }
+
+        @Override
+        public void setResult(int y, char value) {
+  //          System.err.println(y + ": " + value);
+            result[x][y] = value;
+        }
+    }
+
+    private Line[] rows;
+    private Line[] cols;
+
+    private char[][] result;
+
+    public String solve(final int[][] rowNumbers, final int[][] colNumbers) {
+        initializeVariables(rowNumbers, colNumbers);
+        solve();
+        return extractResultAsString();
+    }
+
+    private void initializeVariables(final int[][] rowNumbers, final int[][] colNumbers) {
+        this.rows = new Line[rowNumbers.length];
+        for (int y = 0; y < rowNumbers.length; y++) {
+            this.rows[y] = new Row(rowNumbers[y], colNumbers.length, y);
+        }
+        this.cols = new Line[colNumbers.length];
+        for (int x = 0; x < colNumbers.length; x++) {
+            this.cols[x] = new Col(colNumbers[x], rowNumbers.length, x);
+        }
+        this.result = new char[colNumbers.length][rowNumbers.length];
+        for (int x = 0; x < colNumbers.length; x++) {
+            for (int y = 0; y < rowNumbers.length; y++) {
+                result[x][y] = UNKNOWN;
             }
         }
     }
 
-    private void setDefiniteBlack() {
-        for (BlackArea ba : bas) {
-            for (int i = ba.getInnerLeft(); i < ba.getInnerRight(); i++) {
-                output[i] = BLACK;
+    private String extractResultAsString() {
+        StringBuilder builder = new StringBuilder();
+        for (int y = 0; y < rows.length; y++) {
+            for (int x = 0; x < cols.length; x++) {
+                builder.append(result[x][y]);
+            }
+            // TODO System.getProperty("line.separator")
+            builder.append('\n');
+        }
+        return builder.toString();
+    }
+
+    private void solve() {
+        for (int i = 0; i < 2; i++) {
+            for (Line row : rows) {
+                row.solveLine();
+            }
+            for (Line col : cols) {
+                col.solveLine();
             }
         }
     }
