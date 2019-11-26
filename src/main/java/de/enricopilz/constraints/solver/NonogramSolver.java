@@ -57,7 +57,7 @@ public class NonogramSolver {
         }
 
         public void setInnerLeft(int innerLeft) {
-            outerRight = innerLeft + length;
+            setMaximalOuterRight(innerLeft + length);
         }
 
         public int getInnerRight() {
@@ -65,7 +65,7 @@ public class NonogramSolver {
         }
 
         public void setInnerRight(int innerRight) {
-            outerLeft = innerRight - length;
+            setMinimalOuterLeft(innerRight - length);
         }
 
         public void setMinimalOuterLeft(int newOuterLeft) {
@@ -279,10 +279,42 @@ public class NonogramSolver {
         }
     }
 
+    public class GenericLine extends NonogramSolver.Line {
+
+        public GenericLine(int[] numbers, int size) {
+            super(numbers, size);
+        }
+
+        @Override
+        public char getResult(int i) {
+            return testResult[i];
+        }
+
+        @Override
+        public void setResult(int i, char value) {
+            testResult[i] = value;
+        }
+    }
+
     private Line[] rows;
     private Line[] cols;
 
     private char[][] result;
+
+    private Line genericLine;
+    private char[] testResult;
+
+    public String solveGenericLine(String input, int[] numbers) {
+        initializeGenericVariables(input, numbers);
+        genericSolve();
+        return String.valueOf(testResult);
+    }
+
+    private void initializeGenericVariables(final String input, final int[] numbers) {
+        this.genericLine = new GenericLine(numbers, input.length());
+        this.testResult = input.toCharArray();
+        Arrays.fill(testResult, UNKNOWN);
+    }
 
     public String solve(final int[][] rowNumbers, final int[][] colNumbers) {
         initializeVariables(rowNumbers, colNumbers);
@@ -320,7 +352,7 @@ public class NonogramSolver {
     }
 
     private void solve() {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             for (Line row : rows) {
                 row.solveLine();
             }
@@ -328,5 +360,9 @@ public class NonogramSolver {
                 col.solveLine();
             }
         }
+    }
+
+    private void genericSolve() {
+        genericLine.solveLine();
     }
 }

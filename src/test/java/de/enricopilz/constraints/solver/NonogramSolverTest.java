@@ -9,7 +9,6 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.setAllowComparingPrivateFields;
 
 @RunWith(Parameterized.class)
 public class NonogramSolverTest {
@@ -50,8 +49,8 @@ public class NonogramSolverTest {
     @Test
     public void testSolveLine() {
         System.err.println("'" + input + "' + " + Arrays.toString(numbers) + " -> '" + expectedOutput + "'");
-    //    String actualOutput = nonogramSolver.solveLine(input, numbers);
-//        assertThat(actualOutput).isEqualTo(expectedOutput);
+        String actualOutput = nonogramSolver.solveGenericLine(input, numbers);
+        assertThat(actualOutput).isEqualTo(expectedOutput);
     }
 
     // helper
