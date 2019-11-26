@@ -148,6 +148,7 @@ public class NonogramSolver {
                     ba.setMinimalOuterLeft(start);
                     return;
                 }
+                // else: nächster Versuch
             }
         }
 
@@ -157,6 +158,7 @@ public class NonogramSolver {
                     ba.setMaximalOuterRight(end);
                     return;
                 }
+                // else: nächster Versuch
             }
         }
 
@@ -306,14 +308,13 @@ public class NonogramSolver {
 
     public String solveGenericLine(String input, int[] numbers) {
         initializeGenericVariables(input, numbers);
-        genericSolve();
+        genericLine.solveLine();
         return String.valueOf(testResult);
     }
 
     private void initializeGenericVariables(final String input, final int[] numbers) {
         this.genericLine = new GenericLine(numbers, input.length());
         this.testResult = input.toCharArray();
-        Arrays.fill(testResult, UNKNOWN);
     }
 
     public String solve(final int[][] rowNumbers, final int[][] colNumbers) {
@@ -360,9 +361,5 @@ public class NonogramSolver {
                 col.solveLine();
             }
         }
-    }
-
-    private void genericSolve() {
-        genericLine.solveLine();
     }
 }
