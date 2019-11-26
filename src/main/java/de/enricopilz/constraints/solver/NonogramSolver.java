@@ -122,90 +122,90 @@ public class NonogramSolver {
                 return;
             }
             bas[0].setMinimalOuterLeft(0);
-            bas[bas.length-1].setMaximalOuterRight(size);
+            bas[bas.length - 1].setMaximalOuterRight(size);
         }
 
         public void solveLine() {
-              useTechniqueForcing();
-              useTechniqueGlueing();
+            useTechniqueForcing();
+            useTechniqueGlueing();
 
             setDefiniteBlack();
             setDefiniteWhite();
         }
 
 
-    public void useTechniqueForcing() {
-        for (BlackArea ba : bas) {
-            increaseFirstPossibleStart(ba);
-            decreaseLastPossibleEnding(ba);
-        }
-    }
-
-    private void increaseFirstPossibleStart(BlackArea ba) {
-        // TODO Optimierungsmöglichkeiten
-        for (int start = ba.getOuterLeft(); start <= ba.getInnerLeft(); start++) {
-            if (isPossibleStart(ba, start)) {
-                ba.setMinimalOuterLeft(start);
-                return;
+        public void useTechniqueForcing() {
+            for (BlackArea ba : bas) {
+                increaseFirstPossibleStart(ba);
+                decreaseLastPossibleEnding(ba);
             }
         }
-    }
 
-    private void decreaseLastPossibleEnding(BlackArea ba) {
-        for (int end = ba.getOuterRight(); end >= ba.getInnerRight(); end--) {
-            if (isPossibleEnd(ba, end)) {
-                ba.setMaximalOuterRight(end);
-                return;
+        private void increaseFirstPossibleStart(BlackArea ba) {
+            // TODO Optimierungsmöglichkeiten
+            for (int start = ba.getOuterLeft(); start <= ba.getInnerLeft(); start++) {
+                if (isPossibleStart(ba, start)) {
+                    ba.setMinimalOuterLeft(start);
+                    return;
+                }
             }
         }
-    }
 
-    private boolean isPossibleStart(BlackArea ba, int start) {
-        for (int i = start; i < start + ba.getLength(); i++) {
-            if (getResult(i) == WHITE) {
-                return false;
+        private void decreaseLastPossibleEnding(BlackArea ba) {
+            for (int end = ba.getOuterRight(); end >= ba.getInnerRight(); end--) {
+                if (isPossibleEnd(ba, end)) {
+                    ba.setMaximalOuterRight(end);
+                    return;
+                }
             }
         }
-        return true;
-    }
 
-    private boolean isPossibleEnd(BlackArea ba, int end) {
-        for (int i = end; i > end - ba.getLength(); i--) {
-            if (getResult(i - 1) == WHITE) {
-                return false;
+        private boolean isPossibleStart(BlackArea ba, int start) {
+            for (int i = start; i < start + ba.getLength(); i++) {
+                if (getResult(i) == WHITE) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private boolean isPossibleEnd(BlackArea ba, int end) {
+            for (int i = end; i > end - ba.getLength(); i--) {
+                if (getResult(i - 1) == WHITE) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void useTechniqueGlueing() {
+            for (BlackArea ba : bas) {
+                glueingFromLeft(ba);
+            }
+            for (int n = bas.length - 1; n >= 0; n--) {
+                glueingFromRight(bas[n]);
             }
         }
-        return true;
-    }
 
-    private void useTechniqueGlueing() {
-        for (BlackArea ba : bas) {
-            glueingFromLeft(ba);
-        }
-        for (int n = bas.length - 1; n >= 0; n--) {
-            glueingFromRight(bas[n]);
-        }
-    }
-
-    private void glueingFromLeft(BlackArea ba) {
-        // von unten - TODO ist vermutlich noch fehlerhaft
-        for (int i = ba.getOuterLeft(); i < ba.getInnerLeft(); i++) {
-            if (getResult(i) == BLACK) {
-                ba.setInnerLeft(i);
-                return;
+        private void glueingFromLeft(BlackArea ba) {
+            // von unten - TODO ist vermutlich noch fehlerhaft
+            for (int i = ba.getOuterLeft(); i < ba.getInnerLeft(); i++) {
+                if (getResult(i) == BLACK) {
+                    ba.setInnerLeft(i);
+                    return;
+                }
             }
         }
-    }
 
-    private void glueingFromRight(BlackArea ba) {
-        // von oben - TODO ist vermutlich noch fehlerhaft
-        for (int i = ba.getOuterRight(); i > ba.getInnerRight(); i--) {
-            if (getResult(i - 1) == BLACK) {
-                ba.setInnerRight(i);
-                return;
+        private void glueingFromRight(BlackArea ba) {
+            // von oben - TODO ist vermutlich noch fehlerhaft
+            for (int i = ba.getOuterRight(); i > ba.getInnerRight(); i--) {
+                if (getResult(i - 1) == BLACK) {
+                    ba.setInnerRight(i);
+                    return;
+                }
             }
         }
-    }
 
 
         private void setDefiniteWhite() {
@@ -274,7 +274,7 @@ public class NonogramSolver {
 
         @Override
         public void setResult(int y, char value) {
-  //          System.err.println(y + ": " + value);
+            //          System.err.println(y + ": " + value);
             result[x][y] = value;
         }
     }
