@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class NonogramSolver {
 
-    private static final char UNKNOWN = 'x';
+    private static final char UNKNOWN = '.';
     private static final char BLACK = '#';
-    private static final char WHITE = '.';
+    private static final char WHITE = ' ';
 
     /**
      * 01234
@@ -320,7 +320,7 @@ public class NonogramSolver {
     }
 
     private void solve() {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 5; i++) {
             for (Line row : rows) {
                 row.solveLine();
             }
