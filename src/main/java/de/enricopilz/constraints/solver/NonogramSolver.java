@@ -36,6 +36,11 @@ public class NonogramSolver {
             outerRight = Integer.MAX_VALUE;
         }
 
+        @Override
+        public String toString() {
+            return outerLeft + "--" + outerRight;
+        }
+
         public void setLeft(final BlackArea left) {
             this.left = left;
         }
@@ -181,29 +186,36 @@ public class NonogramSolver {
         }
 
         private void useTechniqueGlueing() {
-            for (BlackArea ba : bas) {
-                glueingFromLeft(ba);
+            if (bas.length > 0) {
+//            for (BlackArea ba : bas) {
+                glueingFromLeft(bas[0]);
+//            }
             }
             for (int n = bas.length - 1; n >= 0; n--) {
-                glueingFromRight(bas[n]);
+               // glueingFromRight(bas[n]);
             }
         }
 
         private void glueingFromLeft(BlackArea ba) {
-            // von unten - TODO ist vermutlich noch fehlerhaft
-            for (int i = ba.getOuterLeft(); i < ba.getInnerLeft(); i++) {
-                if (getResult(i) == BLACK) {
-                    ba.setInnerLeft(i);
+            // von unten - TODO ist noch fehlerhaft
+            System.err.println("before: " + ba);
+            for (int i = 0; i <= ba.getLength(); i++) {
+                System.err.println(i);
+                if (getResult(ba.getOuterLeft() + i) == BLACK) {
+                    ba.setInnerLeft(ba.getOuterLeft() + i);
+                    System.err.println("first black from left is: " + i + ", set to " + ba);
                     return;
                 }
             }
         }
 
         private void glueingFromRight(BlackArea ba) {
-            // von oben - TODO ist vermutlich noch fehlerhaft
-            for (int i = ba.getOuterRight(); i > ba.getInnerRight(); i--) {
-                if (getResult(i - 1) == BLACK) {
-                    ba.setInnerRight(i);
+            // von oben - TODO ist noch fehlerhaft
+            System.err.println(ba);
+            for (int i = 0; i > ba.getLength(); i--) {
+                if (getResult(ba.getOuterRight() - i - 1) == BLACK) {
+                    ba.setInnerRight(ba.getOuterRight() - i);
+                    System.err.println("first black from right at: " + i + ", set to " + ba);
                     return;
                 }
             }
@@ -353,7 +365,7 @@ public class NonogramSolver {
     }
 
     private void solve() {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             for (Line row : rows) {
                 row.solveLine();
             }
