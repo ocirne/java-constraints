@@ -1,6 +1,6 @@
 package de.enricopilz.constraints.api;
 
-import de.enricopilz.constraints.solver.NonogramSolver;
+import de.enricopilz.constraints.solver.NonogramSolver2;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +20,7 @@ public class NonogramIT {
         String expectedSolution =
                 "#  #" +
                 " ## ";
-        NonogramSolver nonogramSolver = new NonogramSolver();
+        NonogramSolver2 nonogramSolver = new NonogramSolver2();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
         System.err.println("Result:");
         System.err.println(result);
@@ -43,7 +43,7 @@ public class NonogramIT {
                 " ##     \n" +
                 " ##     \n" +
                 "        \n";
-        NonogramSolver nonogramSolver = new NonogramSolver();
+        NonogramSolver2 nonogramSolver = new NonogramSolver2();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
         System.err.println("Result:");
         System.err.println(result);
@@ -103,7 +103,7 @@ public class NonogramIT {
                 "# # #######    \n" +
                 "# #########    \n" +
                 "############   \n";
-        NonogramSolver nonogramSolver = new NonogramSolver();
+        NonogramSolver2 nonogramSolver = new NonogramSolver2();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
         System.err.println("Result:");
         System.err.println(result);

@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(Parameterized.class)
 public class NonogramSolverTest {
 
-    private NonogramSolver nonogramSolver = new NonogramSolver();
+    private NonogramSolver2 nonogramSolver = new NonogramSolver2();
 
     @Parameters
     public static Iterable<Object[]> data() {
@@ -36,6 +36,7 @@ public class NonogramSolverTest {
                   { "...#...", a(3), " ..#.. " },
                   { ".#....#.", a(2, 2), ".#.  .#." },
                   { "....##.......##", a(4, 3), "  ..##..    ###"},
+                  { "##.......##....", a(3, 4), "###    ..##..  "},
           });
     }
 
