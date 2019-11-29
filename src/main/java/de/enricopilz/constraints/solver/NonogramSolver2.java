@@ -181,12 +181,19 @@ public class NonogramSolver2 {
             for (int a = 0; a < size; a++) {
                 System.err.println(a + " -> " + putter.get(a).size());
             }
-            for (int i = 0; i < size; i++) {
-                if (getResult(i) == BLACK && putter.get(i).size() == 1) {
-                    BlackArea ba = putter.get(i).iterator().next();
-                    System.err.println("make sure: " + i);
-                    ba.makeSure(i);
-                    System.err.println("--> " + ba);
+            int i = 0;
+            while (i < size) {
+                if (putter.get(i).size() == 1) {
+                    while (i < size && getResult(i) == BLACK) {
+                        BlackArea ba = putter.get(i).iterator().next();
+                        System.err.println("make sure: " + i);
+                        System.err.println(extractResultAsString());
+                        ba.makeSure(i);
+                        System.err.println("--> " + ba);
+                        i++;
+                    }
+                } else {
+                    i++;
                 }
             }
         }
