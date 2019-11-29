@@ -60,6 +60,9 @@ public class NonogramSolver2 {
                 }
             }
             possibilities.removeAll(removals);
+            if (possibilities.isEmpty()) {
+                throw new IllegalStateException("Oops removed all values");
+            }
         }
 
         public void setMaxValue(int newMaxValue) {
@@ -70,6 +73,9 @@ public class NonogramSolver2 {
                 }
             }
             possibilities.removeAll(removals);
+            if (possibilities.isEmpty()) {
+                throw new IllegalStateException("Oops removed all values");
+            }
         }
 
         public void makeSure(int makeSureValue) {
@@ -116,6 +122,8 @@ public class NonogramSolver2 {
             }
             setDefiniteBlack();
             setDefiniteWhite();
+ //           System.err.println("Zwischenergebnis: ");
+//            System.err.println(extractResultAsString());
         }
 
         // schiebt rechts und links, damit die Werte zusammenpassen
@@ -127,19 +135,29 @@ public class NonogramSolver2 {
             System.err.println("from left");
             for (int b = 1; b < bas.length; b++) {
                 System.err.println(bas[b]);
+                BlackArea current = bas[b];
                 BlackArea prev = bas[b-1];
+                for (BlackArea ba : bas) {
+                    System.err.println("DEBUG " + ba);
+                }
+                System.err.print("DEBUG ");
+                for (int i = 0; i < size; i++) {
+                    System.err.print(getResult(i));
+                }
+                System.err.println();
                 int newMinValue = prev.minValue() + prev.getLength() + 1;
-                bas[b].setMinValue(newMinValue);
-                System.err.println(newMinValue + " -> " + bas[b]);
+                current.setMinValue(newMinValue);
+                System.err.println(newMinValue + " -> " + current);
             }
             // from right
             System.err.println("from right");
             for (int b = bas.length - 2; b >= 0; b--) {
                 System.err.println(bas[b]);
+                BlackArea current = bas[b];
                 BlackArea next = bas[b+1];
-                int newMaxValue = next.maxValue() - next.getLength() - 1;
-                bas[b].setMaxValue(newMaxValue);
-                System.err.println(newMaxValue + " -> " + bas[b]);
+                int newMaxValue = next.maxValue() - current.getLength() - 1;
+                current.setMaxValue(newMaxValue);
+                System.err.println(newMaxValue + " -> " + current);
             }
         }
 
@@ -152,8 +170,9 @@ public class NonogramSolver2 {
             }
             for (BlackArea ba : bas) {
                 for (int p : ba.possibilities) {
-                    for (int i = p; i < p + ba.length; i++) {
+                    for (int i = p; i < p + ba.getLength() - 1; i++) {
                         if (i < size) {
+                            System.err.println("put in " + i + " ba " + ba);
                             putter.get(i).add(ba);
                         }
                     }
@@ -368,7 +387,7 @@ public class NonogramSolver2 {
         // loop:
             // Alle Constraints anwenden
             // gleichzeitig Sichere schwarze setzen und Weiße
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             for (Line row : rows) {
                 row.solveLine();
             }
