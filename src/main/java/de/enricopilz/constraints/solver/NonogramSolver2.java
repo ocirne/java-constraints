@@ -132,32 +132,32 @@ public class NonogramSolver2 {
                 return;
             }
             // from left
-            System.err.println("from left");
+//            System.err.println("from left");
             for (int b = 1; b < bas.length; b++) {
                 System.err.println(bas[b]);
                 BlackArea current = bas[b];
                 BlackArea prev = bas[b-1];
-                for (BlackArea ba : bas) {
-                    System.err.println("DEBUG " + ba);
-                }
-                System.err.print("DEBUG ");
-                for (int i = 0; i < size; i++) {
-                    System.err.print(getResult(i));
-                }
-                System.err.println();
+//                for (BlackArea ba : bas) {
+//                    System.err.println("DEBUG " + ba);
+//                }
+//                System.err.print("DEBUG ");
+//                for (int i = 0; i < size; i++) {
+//                    System.err.print(getResult(i));
+//                }
+//                System.err.println();
                 int newMinValue = prev.minValue() + prev.getLength() + 1;
                 current.setMinValue(newMinValue);
-                System.err.println(newMinValue + " -> " + current);
+//                System.err.println(newMinValue + " -> " + current);
             }
             // from right
-            System.err.println("from right");
+//            System.err.println("from right");
             for (int b = bas.length - 2; b >= 0; b--) {
-                System.err.println(bas[b]);
+//                System.err.println(bas[b]);
                 BlackArea current = bas[b];
                 BlackArea next = bas[b+1];
                 int newMaxValue = next.maxValue() - current.getLength() - 1;
                 current.setMaxValue(newMaxValue);
-                System.err.println(newMaxValue + " -> " + current);
+//                System.err.println(newMaxValue + " -> " + current);
             }
         }
 
@@ -172,24 +172,24 @@ public class NonogramSolver2 {
                 for (int p : ba.possibilities) {
                     for (int i = p; i < p + ba.getLength(); i++) {
                         if (i < size) {
-                            System.err.println("put in " + i + " ba " + ba);
+//                            System.err.println("put in " + i + " ba " + ba);
                             putter.get(i).add(ba);
                         }
                     }
                 }
             }
-            for (int a = 0; a < size; a++) {
-                System.err.println(a + " -> " + putter.get(a).size());
-            }
+//            for (int a = 0; a < size; a++) {
+//                System.err.println(a + " -> " + putter.get(a).size());
+//            }
             int i = 0;
             while (i < size) {
                 if (putter.get(i).size() == 1 && getResult(i) == BLACK) {
                     BlackArea ba = putter.get(i).iterator().next();
                     while (i < size && getResult(i) == BLACK) {
-                        System.err.println("make sure: " + i);
+//                        System.err.println("make sure: " + i);
 //                        System.err.println(extractResultAsString());
                         ba.makeSure(i);
-                        System.err.println("--> " + ba);
+//                        System.err.println("--> " + ba);
                         i++;
                     }
                 } else {
@@ -211,7 +211,7 @@ public class NonogramSolver2 {
             // remove everything which doesn't match
             List<Integer> removals = new LinkedList<>();
             for (Integer value : blackArea.getPossibilities()) {
-                System.err.println("check constraint value: " + value);
+//                System.err.println("check constraint value: " + value);
                 if (!matchPossible(blackArea, value)) {
                     removals.add(value);
                 }
@@ -227,7 +227,7 @@ public class NonogramSolver2 {
         private boolean matchPossible(final BlackArea ba, final int start) {
             // kann später weggelassen werden, da das mit initial constraints erledigt wird
             if (start + ba.getLength() > size) {
-                System.err.println("zu lang: " + ", start: " + start + ", length: " + ba.getLength() + ", size: " + size);
+//                System.err.println("zu lang: " + ", start: " + start + ", length: " + ba.getLength() + ", size: " + size);
                 return false;
             }
             for (int i = 0; i < ba.getLength(); i++) {
@@ -244,7 +244,7 @@ public class NonogramSolver2 {
             char[] tmp = new char[size];
             Arrays.fill(tmp, UNKNOWN);
             for (BlackArea ba : bas) {
-                System.err.println(ba);
+//                System.err.println(ba);
                 for (int start : ba.getPossibilities()) {
                     for (int i = 0; i < ba.getLength(); i++) {
 //                        System.err.println("could be black " + (start + i));
@@ -255,7 +255,7 @@ public class NonogramSolver2 {
             // Alles, was nicht erreicht wird, muss weiß sein
             for (int i = 0; i < size; i++) {
                 if (tmp[i] == UNKNOWN) {
-                    System.err.println("white: " + i);
+//                    System.err.println("white: " + i);
                     setResult(i, WHITE);
                 }
             }
@@ -264,11 +264,11 @@ public class NonogramSolver2 {
         // eigentlich Repräsentation
         private void setDefiniteBlack() {
             for (BlackArea ba : bas) {
-                System.err.println(ba);
+//                System.err.println(ba);
 //                System.err.println("set black from: " + (ba.maxValue()));
 //                System.err.println("set black to: " + (ba.minValue() + ba.getLength()));
                 for (int i = ba.maxValue(); i < ba.minValue() + ba.getLength(); i++) {
-                    System.err.println("definitiv black: " + i);
+//                    System.err.println("definitiv black: " + i);
                     setResult(i, BLACK);
                 }
             }
