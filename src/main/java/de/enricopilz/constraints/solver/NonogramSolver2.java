@@ -170,7 +170,7 @@ public class NonogramSolver2 {
             }
             for (BlackArea ba : bas) {
                 for (int p : ba.possibilities) {
-                    for (int i = p; i < p + ba.getLength() - 1; i++) {
+                    for (int i = p; i < p + ba.getLength(); i++) {
                         if (i < size) {
                             System.err.println("put in " + i + " ba " + ba);
                             putter.get(i).add(ba);
@@ -183,11 +183,11 @@ public class NonogramSolver2 {
             }
             int i = 0;
             while (i < size) {
-                if (putter.get(i).size() == 1) {
+                if (putter.get(i).size() == 1 && getResult(i) == BLACK) {
+                    BlackArea ba = putter.get(i).iterator().next();
                     while (i < size && getResult(i) == BLACK) {
-                        BlackArea ba = putter.get(i).iterator().next();
                         System.err.println("make sure: " + i);
-                        System.err.println(extractResultAsString());
+//                        System.err.println(extractResultAsString());
                         ba.makeSure(i);
                         System.err.println("--> " + ba);
                         i++;
