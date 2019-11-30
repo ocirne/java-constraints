@@ -135,7 +135,6 @@ public class SudokuIT {
             }
             // solve
             int result = canSolveSudoku(field);
-            System.out.println("sol: " + result);
         }
     }
 
