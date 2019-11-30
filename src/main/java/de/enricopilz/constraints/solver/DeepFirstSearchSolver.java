@@ -1,5 +1,6 @@
 package de.enricopilz.constraints.solver;
 
+import de.enricopilz.constraints.UnsatisfiableException;
 import de.enricopilz.constraints.api.*;
 import de.enricopilz.constraints.problem.Variable;
 import de.enricopilz.constraints.problem.Variables;
@@ -28,26 +29,28 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
 
     @Override
     public List<Solution<S>> solve() {
-        initialPart(problem, problem.getVariables());
+        try {
+            initialPart(problem, problem.getVariables());
+        } catch (UnsatisfiableException e) {
+            // fine, return empty list
+        }
         return solutions;
     }
 
-    private void initialPart(final Problem<S> problem, Variables<S> variables) {
+    private void initialPart(final Problem<S> problem, Variables<S> variables)
+        throws UnsatisfiableException {
         for (SimConstraint<S> constraint : problem.getSimConstraints()) {
-            if (!useSimConstraint(variables, constraint)) {
-                return;
-            }
+            useSimConstraint(variables, constraint);
         }
         reasoningPart(problem, variables.deepClone());
     }
 
-    private void reasoningPart(final Problem<S> problem, Variables<S> variables) {
+    private void reasoningPart(final Problem<S> problem, Variables<S> variables)
+            throws UnsatisfiableException {
         while (true) {
             final long before = variables.countSolvedVariables();
             for (BiConstraint<S> constraint : problem.getBiConstraints()) {
-                if (!useBiConstraint(variables, constraint)) {
-                    return;
-                }
+                useBiConstraint(variables, constraint);
             }
             final long after = variables.countSolvedVariables();
             // no changes from constraints: solved, or need to guess
@@ -66,26 +69,40 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
         Variable<S> unsolvedVariable = variables.chooseUnsolvedVariable();
         for (var possibility : unsolvedVariable.getPossibilities()) {
             unsolvedVariable.guessValue(possibility);
-            reasoningPart(problem, variables.deepClone());
+            try {
+                reasoningPart(problem, variables.deepClone());
+            } catch (UnsatisfiableException e) {
+                // fine, next
+            }
         }
     }
 
-    private boolean useSimConstraint(final Variables<S> variables, final SimConstraint<S> constraint) {
-        Variable<S> variable = variables.get(constraint.getSymbol());
-        return removeNonMatching(variable, constraint::match);
+    private void useSimConstraint(final Variables<S> variables, final SimConstraint<S> constraint)
+            throws UnsatisfiableException {
+        final Variable<S> variable = variables.get(constraint.getSymbol());
+        removeNonMatching(variable, constraint::match);
     }
 
-    private boolean useBiConstraint(final Variables<S> variables, final BiConstraint<S> constraint) {
+    private void useBiConstraint(final Variables<S> variables, final BiConstraint<S> constraint)
+            throws UnsatisfiableException {
         final Variable<S> a = variables.get(constraint.getA());
         final Variable<S> b = variables.get(constraint.getB());
-        return (a.value().isEmpty() || removeNonMatching(b, x -> constraint.match(a.value().get(), x))) &&
-               (b.value().isEmpty() || removeNonMatching(a, x -> constraint.match(x, b.value().get())));
+        if (a.value().isPresent()) {
+            removeNonMatching(b, x -> constraint.match(a.value().get(), x));
+        }
+        if (b.value().isPresent()) {
+            removeNonMatching(a, x -> constraint.match(x, b.value().get()));
+        }
     }
 
-    private boolean removeNonMatching(final Variable<S> variable, final Function<Integer, Boolean> fun) {
+    private void removeNonMatching(final Variable<S> variable, final Function<Integer, Boolean> fun)
+            throws UnsatisfiableException {
         // If already solved, then only check (faster detection of wrong guesses)
         if (variable.value().isPresent()) {
-            return fun.apply(variable.value().get());
+            if (!fun.apply(variable.value().get())) {
+                throw new UnsatisfiableException("not matching assignment");
+            }
+            return;
         }
         // remove everything which doesn't match
         List<Integer> removals = new LinkedList<>();
@@ -96,9 +113,8 @@ public class DeepFirstSearchSolver<S> implements Solver<S> {
         }
         // No more possibilities? Then a guess was wrong.
         if (variable.getPossibilities().size() == removals.size()) {
-            return false;
+            throw new UnsatisfiableException("all possibilities removed");
         }
         variable.removePossibilities(removals);
-        return true;
     }
 }
