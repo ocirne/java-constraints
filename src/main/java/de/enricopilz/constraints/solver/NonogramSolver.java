@@ -1,6 +1,8 @@
 package de.enricopilz.constraints.solver;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class NonogramSolver {
 
@@ -8,94 +10,83 @@ public class NonogramSolver {
     private static final char BLACK = '#';
     private static final char WHITE = ' ';
 
-    /**
-     * 01234
-     * ###..
-     * .###.
-     * ..###
-     * ->
-     * ..#..
-     * <p>
-     * 3 in einer 5 Linie bedeutet:
-     * - Anfang ist mindestens bei 0 (outerLeft), höchstens bei 2 (innerLeft)
-     * - Ende ist mindestens vor 3 (innerRight), höchstens vor 5 (outerRight)
-     */
+    // ähnlich Variable, vielleicht zusammenlegen
+    // Dann auch prüfen, ob man constraints-hopping einbauen kann
     static class BlackArea {
 
         private final int length;
 
-        private int outerLeft;
-        private int outerRight;
+        private List<Integer> possibilities;
 
-        private BlackArea left;
-        private BlackArea right;
-
-        BlackArea(final int length) {
+        BlackArea(final int length, final List<Integer> possibilities) {
             this.length = length;
-            outerLeft = Integer.MIN_VALUE;
-            outerRight = Integer.MAX_VALUE;
+            this.possibilities = new ArrayList<>(possibilities);
         }
 
-        @Override
-        public String toString() {
-            return outerLeft + "--" + outerRight;
+        public Optional<Integer> value() {
+            return possibilities.size() == 1 ? Optional.of(possibilities.get(0)) : Optional.empty();
         }
 
-        public void setLeft(final BlackArea left) {
-            this.left = left;
+        public List<Integer> getPossibilities() {
+            return this.possibilities;
         }
 
-        public void setRight(final BlackArea right) {
-            this.right = right;
-        }
-
-        public int getOuterLeft() {
-            return outerLeft;
-        }
-
-        public int getOuterRight() {
-            return outerRight;
-        }
-
-        public int getInnerLeft() {
-            return outerRight - length;
-        }
-
-        public void setInnerLeft(int innerLeft) {
-            setMaximalOuterRight(innerLeft + length);
-        }
-
-        public int getInnerRight() {
-            return outerLeft + length;
-        }
-
-        public void setInnerRight(int innerRight) {
-            setMinimalOuterLeft(innerRight - length);
-        }
-
-        public void setMinimalOuterLeft(int newOuterLeft) {
-            if (newOuterLeft <= outerLeft) {
-                return;
-            }
-            outerLeft = newOuterLeft;
-            if (right != null) {
-                right.setMinimalOuterLeft(outerLeft + length + 1);
-            }
-        }
-
-        public void setMaximalOuterRight(int newOuterRight) {
-            if (newOuterRight >= outerRight) {
-                return;
-            }
-            outerRight = newOuterRight;
-            if (left != null) {
-                left.setMaximalOuterRight(outerRight - length - 1);
-            }
+        public void removePossibilities(final List<Integer> removals) {
+            this.possibilities.removeAll(removals);
         }
 
         public int getLength() {
             return length;
         }
+
+        @Override
+        public String toString() {
+            return "ba [length: " + length + ", possibilities: " + String.valueOf(possibilities) + "]";
+        }
+
+        public int maxValue() {
+            return possibilities.stream().max(Integer::compareTo).orElseThrow();
+        }
+
+        public int minValue() {
+            return possibilities.stream().min(Integer::compareTo).orElseThrow();
+        }
+
+        public void setMinValue(int newMinValue) {
+            List<Integer> removals = new LinkedList<>();
+            for (int p :possibilities) {
+                if (p < newMinValue) {
+                    removals.add(p);
+                }
+            }
+            possibilities.removeAll(removals);
+            if (possibilities.isEmpty()) {
+                throw new IllegalStateException("Oops removed all values");
+            }
+        }
+
+        public void setMaxValue(int newMaxValue) {
+            List<Integer> removals = new LinkedList<>();
+            for (int p :possibilities) {
+                if (p > newMaxValue) {
+                    removals.add(p);
+                }
+            }
+            possibilities.removeAll(removals);
+            if (possibilities.isEmpty()) {
+                throw new IllegalStateException("Oops removed all values");
+            }
+        }
+
+        public void makeSure(int makeSureValue) {
+            setMaxValue(makeSureValue);
+            setMinValue(makeSureValue - length + 1);
+        }
+    }
+
+    class Constraint {
+        BlackArea a;
+        BlackArea b;
     }
 
     abstract class Line {
@@ -108,131 +99,132 @@ public class NonogramSolver {
             this.size = size;
             bas = new BlackArea[numbers.length];
             for (int n = 0; n < numbers.length; n++) {
-                bas[n] = new BlackArea(numbers[n]);
-            }
-            for (int n = 0; n < numbers.length; n++) {
-                if (n > 0) {
-                    bas[n].setLeft(bas[n - 1]);
-                }
-                if (n < numbers.length - 1) {
-                    bas[n].setRight(bas[n + 1]);
-                }
+                bas[n] = new BlackArea(numbers[n], IntStream.range(0, size).boxed().collect(Collectors.toList()));
             }
             useTechniqueSimpleBoxes();
         }
 
-        // initialization
+        // initialization - wäre schon gut, um die initialen Maximalgrößen festzulegen
+        // Andererseits kommt das auch rein, wenn die constraints angewendet werden
         public void useTechniqueSimpleBoxes() {
             if (bas.length == 0) {
                 return;
             }
-            bas[0].setMinimalOuterLeft(0);
-            bas[bas.length - 1].setMaximalOuterRight(size);
+//            bas[0].setMinimalOuterLeft(0);
+//            bas[bas.length - 1].setMaximalOuterRight(size);
         }
 
         public void solveLine() {
-            useTechniqueForcing();
-            useTechniqueGlueing();
-
+            for (BlackArea ba : bas) {
+                adjustValues();
+                removeNonMatching(ba);
+                glueing();
+            }
             setDefiniteBlack();
             setDefiniteWhite();
         }
 
+        // schiebt rechts und links, damit die Werte zusammenpassen
+        private void adjustValues() {
+            if (bas.length < 2) {
+                return;
+            }
+            // from left
+            for (int b = 1; b < bas.length; b++) {
+                BlackArea current = bas[b];
+                BlackArea prev = bas[b-1];
+                int newMinValue = prev.minValue() + prev.getLength() + 1;
+                current.setMinValue(newMinValue);
+            }
+            // from right
+            for (int b = bas.length - 2; b >= 0; b--) {
+                BlackArea current = bas[b];
+                BlackArea next = bas[b+1];
+                int newMaxValue = next.maxValue() - current.getLength() - 1;
+                current.setMaxValue(newMaxValue);
+            }
+        }
 
-        public void useTechniqueForcing() {
+        // matcht vorhandene schwarze felder mit Black Areas
+        //
+        private void glueing() {
+            List<Set<BlackArea>> putter = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                putter.add(new HashSet<>());
+            }
             for (BlackArea ba : bas) {
-                increaseFirstPossibleStart(ba);
-                decreaseLastPossibleEnding(ba);
-            }
-        }
-
-        private void increaseFirstPossibleStart(BlackArea ba) {
-            // TODO Optimierungsmöglichkeiten
-            for (int start = ba.getOuterLeft(); start <= ba.getInnerLeft(); start++) {
-                if (isPossibleStart(ba, start)) {
-                    ba.setMinimalOuterLeft(start);
-                    return;
+                for (int p : ba.possibilities) {
+                    for (int i = p; i < p + ba.getLength(); i++) {
+                        if (i < size) {
+                            putter.get(i).add(ba);
+                        }
+                    }
                 }
-                // else: nächster Versuch
             }
-        }
-
-        private void decreaseLastPossibleEnding(BlackArea ba) {
-            for (int end = ba.getOuterRight(); end >= ba.getInnerRight(); end--) {
-                if (isPossibleEnd(ba, end)) {
-                    ba.setMaximalOuterRight(end);
-                    return;
+            int i = 0;
+            while (i < size) {
+                if (putter.get(i).size() == 1 && getResult(i) == BLACK) {
+                    BlackArea ba = putter.get(i).iterator().next();
+                    while (i < size && getResult(i) == BLACK) {
+                        ba.makeSure(i);
+                        i++;
+                    }
+                } else {
+                    i++;
                 }
-                // else: nächster Versuch
             }
         }
 
-        private boolean isPossibleStart(BlackArea ba, int start) {
-            for (int i = start; i < start + ba.getLength(); i++) {
-                if (getResult(i) == WHITE) {
+        // guckt im Prinzip nur, welche Werte ausgeschlossen werden können,
+        // weil in den Zielfeldern schon weiße Flächen sind
+        private void removeNonMatching(final BlackArea blackArea) {
+            // If already solved, then only check
+            if (blackArea.value().isPresent()) {
+                if (!matchPossible(blackArea, blackArea.value().get())) {
+                    throw new IllegalStateException();
+                }
+                return;
+            }
+            // remove everything which doesn't match
+            List<Integer> removals = new LinkedList<>();
+            for (Integer value : blackArea.getPossibilities()) {
+                if (!matchPossible(blackArea, value)) {
+                    removals.add(value);
+                }
+            }
+            // No more possibilities? Then a guess was wrong.
+            if (blackArea.getPossibilities().size() == removals.size()) {
+                return;
+            }
+            blackArea.removePossibilities(removals);
+        }
+
+        // Prüft, ob schwarze Area ba start eingebaut werden kann
+        private boolean matchPossible(final BlackArea ba, final int start) {
+            // kann später weggelassen werden, da das mit initial constraints erledigt wird
+            if (start + ba.getLength() > size) {
+                return false;
+            }
+            for (int i = 0; i < ba.getLength(); i++) {
+                if (getResult(start + i) == WHITE) {
                     return false;
                 }
             }
             return true;
         }
 
-        private boolean isPossibleEnd(BlackArea ba, int end) {
-            for (int i = end; i > end - ba.getLength(); i--) {
-                if (getResult(i - 1) == WHITE) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private void useTechniqueGlueing() {
-            if (bas.length > 0) {
-//            for (BlackArea ba : bas) {
-                glueingFromLeft(bas[0]);
-//            }
-            }
-            for (int n = bas.length - 1; n >= 0; n--) {
-               // glueingFromRight(bas[n]);
-            }
-        }
-
-        private void glueingFromLeft(BlackArea ba) {
-            // von unten - TODO ist noch fehlerhaft
-            System.err.println("before: " + ba);
-            for (int i = 0; i <= ba.getLength(); i++) {
-                System.err.println(i);
-                if (getResult(ba.getOuterLeft() + i) == BLACK) {
-                    ba.setInnerLeft(ba.getOuterLeft() + i);
-                    System.err.println("first black from left is: " + i + ", set to " + ba);
-                    return;
-                }
-            }
-        }
-
-        private void glueingFromRight(BlackArea ba) {
-            // von oben - TODO ist noch fehlerhaft
-            System.err.println(ba);
-            for (int i = 0; i > ba.getLength(); i--) {
-                if (getResult(ba.getOuterRight() - i - 1) == BLACK) {
-                    ba.setInnerRight(ba.getOuterRight() - i);
-                    System.err.println("first black from right at: " + i + ", set to " + ba);
-                    return;
-                }
-            }
-        }
-
-
+        // naja
         private void setDefiniteWhite() {
             // Ermittle in tmp alles, was nicht durch Schwarz erreicht werden kann
             char[] tmp = new char[size];
             Arrays.fill(tmp, UNKNOWN);
             for (BlackArea ba : bas) {
-//                System.err.println(ba.getOuterLeft() + "-" + ba.getOuterRight());
-                for (int i = ba.getOuterLeft(); i < ba.getOuterRight(); i++) {
-                    tmp[i] = BLACK;
+                for (int start : ba.getPossibilities()) {
+                    for (int i = 0; i < ba.getLength(); i++) {
+                        tmp[start + i] = BLACK;
+                    }
                 }
             }
-//            System.err.println(Arrays.toString(tmp));
             // Alles, was nicht erreicht wird, muss weiß sein
             for (int i = 0; i < size; i++) {
                 if (tmp[i] == UNKNOWN) {
@@ -241,9 +233,10 @@ public class NonogramSolver {
             }
         }
 
+        // eigentlich Repräsentation
         private void setDefiniteBlack() {
             for (BlackArea ba : bas) {
-                for (int i = ba.getInnerLeft(); i < ba.getInnerRight(); i++) {
+                for (int i = ba.maxValue(); i < ba.minValue() + ba.getLength(); i++) {
                     setResult(i, BLACK);
                 }
             }
@@ -257,7 +250,7 @@ public class NonogramSolver {
     class Row extends Line {
         private final int y;
 
-        public Row(int[] numbers, int size, int y) {
+        Row(int[] numbers, int size, int y) {
             super(numbers, size);
             this.y = y;
         }
@@ -276,7 +269,7 @@ public class NonogramSolver {
     class Col extends Line {
         private final int x;
 
-        public Col(int[] numbers, int size, int x) {
+        Col(int[] numbers, int size, int x) {
             super(numbers, size);
             this.x = x;
         }
@@ -288,12 +281,11 @@ public class NonogramSolver {
 
         @Override
         public void setResult(int y, char value) {
-            //          System.err.println(y + ": " + value);
             result[x][y] = value;
         }
     }
 
-    public class GenericLine extends NonogramSolver.Line {
+    public class GenericLine extends Line {
 
         public GenericLine(int[] numbers, int size) {
             super(numbers, size);
@@ -320,7 +312,9 @@ public class NonogramSolver {
 
     public String solveGenericLine(String input, int[] numbers) {
         initializeGenericVariables(input, numbers);
-        genericLine.solveLine();
+        for (int i = 0; i < 2; i++) {
+            genericLine.solveLine();
+        }
         return String.valueOf(testResult);
     }
 
@@ -365,6 +359,9 @@ public class NonogramSolver {
     }
 
     private void solve() {
+        // loop:
+            // Alle Constraints anwenden
+            // gleichzeitig Sichere schwarze setzen und Weiße
         for (int i = 0; i < 10; i++) {
             for (Line row : rows) {
                 row.solveLine();

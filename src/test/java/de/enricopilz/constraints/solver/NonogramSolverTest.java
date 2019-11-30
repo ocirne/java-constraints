@@ -13,9 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(Parameterized.class)
 public class NonogramSolverTest {
 
-    private NonogramSolver2 nonogramSolver = new NonogramSolver2();
+    private NonogramSolver nonogramSolver = new NonogramSolver();
 
-    @Parameters
+    @Parameters( name = "{0} -> {2}" )
     public static Iterable<Object[]> data() {
           return Arrays.asList(new Object[][] {
                   { ".", a(), " " },
@@ -53,7 +53,6 @@ public class NonogramSolverTest {
 
     @Test
     public void testSolveLine() {
-        System.err.println("'" + input + "' + " + Arrays.toString(numbers) + " -> '" + expectedOutput + "'");
         String actualOutput = nonogramSolver.solveGenericLine(input, numbers);
         assertThat(actualOutput).isEqualTo(expectedOutput);
     }

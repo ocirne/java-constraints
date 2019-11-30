@@ -1,6 +1,6 @@
 package de.enricopilz.constraints.api;
 
-import de.enricopilz.constraints.solver.NonogramSolver2;
+import de.enricopilz.constraints.solver.NonogramSolver;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -23,10 +23,8 @@ public class NonogramIT {
                 " ## \n" +
                 " ## \n" +
                 "#  #\n";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution);
     }
 
@@ -53,11 +51,9 @@ public class NonogramIT {
                 "# # # # \n" +
                 " # # # #\n" +
                 "# # # # \n";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         // sollte zwei Lösungen ergeben
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution1);
     }
 
@@ -78,10 +74,8 @@ public class NonogramIT {
                 " ##     \n" +
                 " ##     \n" +
                 "        \n";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution);
     }
 
@@ -138,10 +132,8 @@ public class NonogramIT {
                 "# # #######    \n" +
                 "# #########    \n" +
                 "############   \n";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution);
     }
 
@@ -162,10 +154,8 @@ public class NonogramIT {
                 {4, 4}, {3, 1, 2, 3}, {2, 1, 2, 2}, {2, 1, 1}, {1, 4, 2}, {1, 3}, {1, 8}, {1, 3, 1, 1}, {1, 4, 2, 1}, {1, 4}, {2, 4, 3}, {3, 3, 3}, {4, 1}, {10, 3}, {10},
         };
         String expectedSolution = ".";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution);
     }
 
@@ -272,10 +262,8 @@ public class NonogramIT {
                 {27, 2}
         };
         String expectedSolution = ".";
-        NonogramSolver2 nonogramSolver = new NonogramSolver2();
+        NonogramSolver nonogramSolver = new NonogramSolver();
         String result = nonogramSolver.solve(rowNumbers, colNumbers);
-        System.err.println("Result:");
-        System.err.println(result);
         assertThat(result).isEqualTo(expectedSolution);
     }
 }
