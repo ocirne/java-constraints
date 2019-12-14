@@ -110,12 +110,14 @@ public class Sudoku {
 
     private List<Group> createTiles() {
         List<Group> tiles = new ArrayList<>();
-        for (int ty = 0; ty < width; ty++) {
-            for (int tx = 0; tx < height; tx++) {
+        for (int ty = 0; ty < height; ty++) {
+            for (int tx = 0; tx < width; tx++) {
                 Group tile = new Group();
-                for (int my = 1; my <= height; my++) {
-                    for (int mx = 1; mx <= width; mx++) {
-                        tile.add(fieldSymbol(ty * width + my,tx * height + mx));
+                for (int my = 1; my <= width; my++) {
+                    for (int mx = 1; mx <= height; mx++) {
+                        int y = ty * width + my;
+                        int x = tx * height + mx;
+                        tile.add(fieldSymbol(y, x));
                     }
                 }
                 tiles.add(tile);
