@@ -102,7 +102,7 @@ public class SudokuIT {
         assertThat(actualSolutions).containsExactly(stripWhiteSpace(expected));
     }
 
-//    @Test
+    @Test
     public void canSolve3x4Sudoku() {
         final String givenProblem =
                 "0000 02a0 0000" +

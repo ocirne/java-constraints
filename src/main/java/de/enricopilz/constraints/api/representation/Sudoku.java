@@ -85,7 +85,7 @@ public class Sudoku {
 
     // TODO das funktioniert (vermutlich) nur bis 9x9
     private Integer fieldSymbol(int y, int x) {
-        return 10 * y + x;
+        return 100 * y + x;
     }
 
     private List<Group> createRows() {
@@ -176,9 +176,16 @@ public class Sudoku {
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 final int cellValue = solution.getValue(fieldSymbol(y +1, x + 1));
-                builder.append(cellValue);
+                builder.append(fromNumericValue(cellValue));
             }
         }
         return builder.toString();
+    }
+
+    private Character fromNumericValue(int x) {
+        if (x < 0 || x > 35) {
+            throw new IllegalArgumentException();
+        }
+        return Character.forDigit(x, 36);
     }
 }
