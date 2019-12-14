@@ -1,4 +1,4 @@
-package de.enricopilz.constraints.problem.constraints;
+package de.enricopilz.constraints.description.constraint;
 
 import java.util.function.Function;
 

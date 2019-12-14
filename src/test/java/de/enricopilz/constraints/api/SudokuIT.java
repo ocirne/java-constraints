@@ -1,5 +1,6 @@
 package de.enricopilz.constraints.api;
 
+import de.enricopilz.constraints.api.representation.Sudoku;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -8,82 +9,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static de.enricopilz.constraints.api.SolverFactory.SolverEnum.DFS;
+import static de.enricopilz.constraints.api.representation.Sudoku.stripWhiteSpace;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SudokuIT {
-
-    private static final List<Integer> RANGE_1_9 = IntStream.rangeClosed(1, 9).boxed().collect(Collectors.toList());
-
-    /** row, column or tile */
-    static class Group {
-
-        private List<Integer> group;
-
-        Group() {
-            this.group = new ArrayList<>();
-        }
-
-        void add(Integer value) {
-            group.add(value);
-        }
-
-        @Override
-        public String toString() {
-            return group.stream().map(Object::toString).collect(Collectors.joining(", "));
-        }
-
-        List<Integer> asList() {
-            return group;
-        }
-    }
-
-    private Integer fieldSymbol(int y, int x) {
-        return 10 * y + x;
-    }
-
-    private List<Group> createRows() {
-        List<Group> rows = new ArrayList<>();
-        for (int y = 1; y <= 9; y++) {
-            Group row = new Group();
-            for (int x = 1; x <= 9; x++) {
-                row.add(fieldSymbol(y, x));
-            }
-            rows.add(row);
-        }
-        return rows;
-    }
-
-    private List<Group> createCols() {
-        List<Group> cols = new ArrayList<>();
-        for (int x = 1; x <= 9; x++) {
-            Group col = new Group();
-            for (int y = 1; y <= 9; y++) {
-                col.add(fieldSymbol(y, x));
-            }
-            cols.add(col);
-        }
-        return cols;
-    }
-
-    private List<Group> createTiles() {
-        List<Group> tiles = new ArrayList<>();
-        for (int ty = 0; ty < 3; ty++) {
-            for (int tx = 0; tx < 3; tx++) {
-                Group tile = new Group();
-                for (int my = 1; my <= 3; my++) {
-                    for (int mx = 1; mx <= 3; mx++) {
-                        tile.add(fieldSymbol(ty * 3 + my,tx * 3 + mx));
-                    }
-                }
-                tiles.add(tile);
-            }
-        }
-        return tiles;
-    }
 
     /** problem definition from https://projecteuler.net/project/resources/p096_sudoku.txt */
     @Test
@@ -100,15 +31,13 @@ public class SudokuIT {
                 break;
             }
             // read sudokus
-            int[][] field = new int[9][9];
+            StringBuilder fieldBuilder = new StringBuilder();
             for (int y = 0; y < 9; y++) {
-                String readLine = b.readLine();
-                for (int x = 0; x < 9; x++) {
-                    field[y][x] = Integer.parseInt(readLine.substring(x, x+1));
-                }
+                fieldBuilder.append(b.readLine());
             }
             // solve
-            int result = canSolveSudoku(field);
+            final String solution = solveStandardSudoku(fieldBuilder.toString());
+            final int result = Integer.parseInt(solution.substring(0, 3));
             total += result;
         }
         assertThat(total).isEqualTo(24702);
@@ -124,62 +53,98 @@ public class SudokuIT {
 
         String readLine;
         while ((readLine = b.readLine()) != null) {
-            // read
-            int[][] field = new int[9][9];
-            int i = 0;
-            for (int y = 0; y < 9; y++) {
-                for (int x = 0; x < 9; x++) {
-                    field[y][x] = Integer.parseInt(readLine.substring(i, i+1));
-                    i++;
-                }
-            }
-            // solve
-            int result = canSolveSudoku(field);
+            String sol = solveStandardSudoku(readLine);
+            System.out.println(sol);
         }
     }
 
-    /**
-     * There are 9x9 cells, thus 81 variables.
-     * At least 17 are given.
-     * The tiles get symbols from 11 to 99 with possibilities 1 to 9.
-     */
-    private int canSolveSudoku(int[][] field) {
-        Problem.Builder<Integer> sudokuProblem = new Problem.Builder<>();
+    @Test
+    public void canSolve2x2Sudoku() {
+        final String givenProblem =
+                "30 00" +
+                "02 01" +
 
-        List<Group> rows = createRows();
-        List<Group> cols = createCols();
-        List<Group> tiles = createTiles();
+                "10 20" +
+                "00 03";
+        final String expected =
+                "31 42" +
+                "42 31" +
 
-        // variables
-        for (int y = 1; y <= 9; y++) {
-            for (int x = 1; x <= 9; x++) {
-                sudokuProblem.addVariable(fieldSymbol(y, x), RANGE_1_9);
-            }
-        }
-        // general sudoku constraints
-        rows.forEach(row -> sudokuProblem.addAllDifferentConstraint(row.asList()));
-        cols.forEach(col -> sudokuProblem.addAllDifferentConstraint(col.asList()));
-        tiles.forEach(tile -> sudokuProblem.addAllDifferentConstraint(tile.asList()));
+                "13 24" +
+                "24 13";
+        Sudoku sudoku = new Sudoku(2, 2, givenProblem);
+        List<String> actualSolutions = sudoku.solve(DFS);
+        assertThat(actualSolutions).containsExactly(stripWhiteSpace(expected));
+    }
 
-        // given values
-        for (int y = 0; y < 9; y++) {
-            for (int x = 0; x < 9; x++) {
-                if (field[y][x] != 0) {
-                    final int cellValue = field[y][x];
-                    sudokuProblem.addConstraint(fieldSymbol(y+1, x+1), (a) -> a.equals(cellValue));
-                }
-            }
-        }
+    @Test
+    public void canSolve2x3Sudoku() {
+        final String givenProblem =
+                "602 100" +
+                "000 000" +
 
-        Solver<Integer> solver = SolverFactory.constructSolver(DFS, sudokuProblem.build());
-        List<Solution<Integer>> sudokuSolutions = solver.solve();
+                "060 045" +
+                "540 020" +
+
+                "000 000" +
+                "006 403";
+        final String expected =
+                "652 134" +
+                "314 562" +
+
+                "261 345" +
+                "543 621" +
+
+                "435 216" +
+                "126 453";
+        Sudoku sudoku = new Sudoku(2, 3, givenProblem);
+        List<String> actualSolutions = sudoku.solve(DFS);
+        assertThat(actualSolutions).containsExactly(stripWhiteSpace(expected));
+    }
+
+    @Test
+    public void canSolve3x4Sudoku() {
+        final String givenProblem =
+                "0000 02a0 0000" +
+                "00a0 0b04 021c" +
+                "4620 c000 a00b" +
+
+                "0080 0c00 6090" +
+                "0100 00b0 0004" +
+                "70b0 0806 00c0" +
+
+                "0200 1090 0c03" +
+                "6000 0500 00b0" +
+                "0407 00c0 0900" +
+
+                "8003 000a 0572" +
+                "bc60 2070 0a00" +
+                "0000 0130 0000";
+        final String expected =
+                "5b7c 32a1 9468" +
+                "93a8 6b54 721c" +
+                "4621 c789 a35b" +
+
+                "3584 ac12 6b97" +
+                "c196 73b5 28a4" +
+                "7ab2 9846 31c5" +
+
+                "a25b 1697 8c43" +
+                "68c9 4523 17ba" +
+                "1437 8acb 5926" +
+
+                "8913 b46a c572" +
+                "bc65 2978 4a31" +
+                "274a 513c b689";
+        Sudoku sudoku = new Sudoku(3, 4, givenProblem);
+        List<String> actualSolutions = sudoku.solve(DFS);
+        assertThat(actualSolutions).containsExactly(stripWhiteSpace(expected));
+    }
+
+    private String solveStandardSudoku(final String sudokuProblem) {
+        Sudoku sudoku = new Sudoku(sudokuProblem);
+        List<String> sudokuSolutions = sudoku.solve(DFS);
         assertThat(sudokuSolutions).hasSize(1);
-        Solution<Integer> sudokuSolution = sudokuSolutions.get(0);
-
-        int f00 = sudokuSolution.getValue(fieldSymbol(1, 1));
-        int f01 = sudokuSolution.getValue(fieldSymbol(1, 2));
-        int f02 = sudokuSolution.getValue(fieldSymbol(1, 3));
-
-        return 100 * f00 + 10 * f01 + f02;
+        return sudokuSolutions.get(0);
     }
 }

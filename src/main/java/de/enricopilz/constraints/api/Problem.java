@@ -1,9 +1,9 @@
 package de.enricopilz.constraints.api;
 
-import de.enricopilz.constraints.problem.Variable;
-import de.enricopilz.constraints.problem.Variables;
-import de.enricopilz.constraints.problem.constraints.BiConstraint;
-import de.enricopilz.constraints.problem.constraints.SimConstraint;
+import de.enricopilz.constraints.description.Variable;
+import de.enricopilz.constraints.description.Variables;
+import de.enricopilz.constraints.description.constraint.BiConstraint;
+import de.enricopilz.constraints.description.constraint.SimConstraint;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -58,14 +58,20 @@ public class Problem<S> {
         }
 
         public void addConstraint(final S symbol, final Function<Integer, Boolean> f) {
+            checkSymbolExists(symbol);
             simConstraints.add(new SimConstraint<>(symbol, f));
         }
 
         public void addConstraint(final S a, final S b, final BiFunction<Integer, Integer, Boolean> f) {
+            checkSymbolExists(a);
+            checkSymbolExists(b);
             biConstraints.add(new BiConstraint<>(a, b, f));
         }
 
         public void addAllDifferentConstraint(final List<S> symbols) {
+            for (final S s : symbols) {
+                checkSymbolExists(s);
+            }
             for (final S a : symbols) {
                 for (final S b : symbols) {
                     if (a.hashCode() <= b.hashCode()) {
@@ -73,6 +79,12 @@ public class Problem<S> {
                     }
                     biConstraints.add(new BiConstraint<>(a, b, (x, y) -> !x.equals(y)));
                 }
+            }
+        }
+
+        private void checkSymbolExists(final S symbol) {
+            if (!variables.containsKey(symbol)) {
+                throw new IllegalArgumentException("Illegal variable in constraint: " + symbol);
             }
         }
     }

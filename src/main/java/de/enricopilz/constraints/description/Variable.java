@@ -1,4 +1,4 @@
-package de.enricopilz.constraints.problem;
+package de.enricopilz.constraints.description;
 
 import java.util.ArrayList;
 import java.util.List;
