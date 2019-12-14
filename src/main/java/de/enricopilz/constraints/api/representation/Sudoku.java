@@ -39,17 +39,21 @@ public class Sudoku {
     }
 
     public Sudoku(int width, int height, String field) {
-        if (width * width * height * height != field.length()) {
-            throw new IllegalArgumentException("Größe des Problems entspricht nicht angegebener Breite x Höhe.");
-        }
         this.width = width;
         this.height = height;
         this.size = width * height;
-        char[] tmp = field.toCharArray();
+        char[] tmp = stripWhiteSpace(field).toCharArray();
+        if (size * size != tmp.length) {
+            throw new IllegalArgumentException("Größe des Problems " + size * size + " entspricht nicht angegebener Breite + " + width + " x Höhe " + height + ".");
+        }
         this.field = new int[tmp.length];
         for (int i = 0; i < tmp.length; i++) {
             this.field[i] = Character.getNumericValue(tmp[i]);
         }
+    }
+
+    public static String stripWhiteSpace(final String st) {
+        return st.replaceAll("\\s","");
     }
 
     private List<Integer> range() {
