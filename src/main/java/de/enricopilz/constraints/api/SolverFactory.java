@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class SolverFactory {
 
-    enum SolverEnum {
+    public enum SolverEnum {
         DFS(DeepFirstSearchSolver.class);
 
         private Class<? extends Solver> clazz;

@@ -2,10 +2,10 @@ package de.enricopilz.constraints.solver;
 
 import de.enricopilz.constraints.UnsatisfiableException;
 import de.enricopilz.constraints.api.*;
-import de.enricopilz.constraints.problem.Variable;
-import de.enricopilz.constraints.problem.Variables;
-import de.enricopilz.constraints.problem.constraints.BiConstraint;
-import de.enricopilz.constraints.problem.constraints.SimConstraint;
+import de.enricopilz.constraints.description.Variable;
+import de.enricopilz.constraints.description.Variables;
+import de.enricopilz.constraints.description.constraint.BiConstraint;
+import de.enricopilz.constraints.description.constraint.SimConstraint;
 
 import java.util.*;
 import java.util.function.Function;

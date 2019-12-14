@@ -1,4 +1,4 @@
-package de.enricopilz.constraints.problem;
+package de.enricopilz.constraints.description;
 
 import de.enricopilz.constraints.api.Solution;
 
